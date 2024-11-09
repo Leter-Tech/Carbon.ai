@@ -24,6 +24,7 @@ PROMPTS = {
         4. AI tips for reducing carbon footprint on purchases
         5. Do not give null or zero values in carbon footprint, just give approximate values
         6. Calculate the carbon footprint on upper limit which means give higher end values of carbon footprint not the mean values
+        7. Give tips and description in line format, do not give in list format and do not use bold or italic text
 
         Format:
         {
@@ -40,6 +41,7 @@ PROMPTS = {
         3. Description of the food items
         4. AI tips for reducing food-related carbon footprint
         5. Give upper limit values of carbon footprint not the mean values
+        6. Give tips and description in line format, do not give in list format and do not use bold or italic text
 
         Format:
         {
@@ -56,7 +58,7 @@ PROMPTS = {
         3. Description of the waste items
         4. AI tips for better waste management
         5. Give upper limit values of carbon footprint not the mean values
-
+        6. Give tips and description in line format, do not give in list format and do not use bold or italic text
         Format:
         {
             "carbon_footprint": float number,
@@ -71,6 +73,7 @@ PROMPTS = {
         2. Category should be "Offset"
         3. Description of the environmental activity
         4. AI tips for maximizing impact
+        5. Give tips and description in line format, do not give in list format and do not use bold or italic text
 
         Format:
         {
@@ -229,6 +232,7 @@ def process_text():
             - It's mandatory to give a number in carbon footprint, do not give null or zero values in carbon footprint, just give approximate values
             - Please calculate the carbon footprint on upper limit which means give higher end values of carbon footprint not the mean values
             - Please note not to give the energy consumption values in carbon footprint, only give the carbon footprint values
+            - Give tips and description in line format, do not give in list format and do not use bold or italic text
 
             Respond ONLY with a JSON object in this exact format:
             {{
@@ -279,6 +283,7 @@ def process_text():
             Distance: {data['distance']} km
 
             It's mandatory to give a number in carbon footprint, do not give null or zero values in carbon footprint, just give approximate values
+            Give tips and description in line format, do not give in list format and do not use bold or italic text
             Respond ONLY with a JSON object in this exact format:
             {{
                 "carbon_footprint": <number>,
@@ -330,6 +335,7 @@ def process_offset():
         2. Category should be "Offset"
         3. Description of the environmental activity (incorporate the provided description)
         4. AI tips for maximizing impact
+        5. Give tips and description in line format, do not give in list format and do not use bold or italic text
 
         Format:
         {{

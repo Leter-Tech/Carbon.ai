@@ -117,4 +117,4 @@ graph TD
 
 ---
 
-Built with ❤️ for empowering individuals to make informed, eco-friendly choices and contribute to a sustainable future.
+Built with ❤️ for empowering individuals to make eco-friendly choices and contribute to a sustainable future.

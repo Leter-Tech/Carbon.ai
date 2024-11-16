@@ -1,0 +1,3358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon.ai - Track Your Environmental Impact With AI</title>
+    <link rel="icon" type="image/x-icon" href="static/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="REMOVED"
+    src="REMOVED"
+    type="text/javascript"
+    ></script>
+    <style>
+    :root {
+        --primary: #2E7D32;
+        --secondary: #81C784;
+        --accent: #43A047;
+        --background: #F5F9F6;
+        --text: #1C1C1C;
+        --card: #FFFFFF;
+        --nav-bg: #ffffff;
+        --border-color: rgba(0,0,0,0.1);
+        --hover-bg: rgba(0,0,0,0.05);
+        --footer-bg: linear-gradient(to right, #1b1b1b, #2c2c2c);
+        --footer-text: #999;
+    }
+
+    [data-theme="dark"] {
+        --primary: #43A047;
+        --secondary: #81C784;
+        --accent: #4CAF50;
+        --background: #121212;
+        --text: #FFFFFF;
+        --card: #1E1E1E;
+        --chk: #171717;
+        --nav-bg: #1E1E1E;
+        --border-color: rgba(255,255,255,0.1);
+        --hover-bg: rgba(255,255,255,0.05);
+        --footer-bg: linear-gradient(to right, #0a0a0a, #1a1a1a);
+        --footer-text: #888;
+    }
+
+.edit-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+.edit-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.edit-select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    background: var(--background);
+    color: var(--text);
+    cursor: pointer;
+}
+
+[data-theme="dark"] .edit-select {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.edit-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+.edit-modal .modal-content {
+    width: 90%;
+    max-width: 500px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+.edit-modal.show .modal-content {
+    transform: translateY(0);
+}
+
+.edit-modal textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background: var(--background);
+    color: var(--text);
+    resize: vertical;
+    min-height: 100px;
+}
+
+.edit-modal input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background: var(--background);
+    color: var(--text);
+}
+
+.edit-modal .button-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.edit-modal button.cancel {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+}
+
+        .upload-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        overflow-y: auto;
+    }
+
+    .upload-modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .modal-content {
+        background: var(--card);
+        padding: 2rem;
+        border-radius: 16px;
+        text-align: center;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 25px rgba(0,0,0,0.1);
+        max-width: 440px;
+        width: 90%;
+        overflow-y: auto;
+    }
+
+    .upload-modal.show .modal-content {
+        transform: translateY(0);
+    }
+
+    .modal-content i {
+        font-size: 3rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+    }
+
+    .modal-content h3 {
+        color: var(--text);
+        margin-bottom: 0.5rem;
+    }
+
+    .modal-content p {
+        color: #666;
+        margin-bottom: 1.5rem;
+        word-break: break-all;
+    }
+
+    .modal-content button {
+        min-width: 120px;
+    }
+
+.site-footer {
+    background: var(--footer-bg);
+    color: #fff;
+    padding: 4rem 0 0 0;
+    margin-top: 4rem;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 3rem;
+}
+
+.footer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.footer-logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+}
+
+.footer-logo span {
+    color: var(--accent);
+}
+
+[data-theme="dark"] .search-bar input {
+        background: var(--card);
+        border-color: var(--border-color);
+        color: var(--text);
+    }
+
+[data-theme="dark"] .input-form input {
+    background: var(--card);
+    border-color: var(--border-color);
+    color: var(--text);
+}
+
+[data-theme="dark"] .emission-card {
+    background: var(--card);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--chk);
+}
+
+[data-theme="dark"] #impactChart {
+    filter: brightness(0.8);
+}
+
+.footer-section p {
+    color: var(--footer-text);
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.cl-userButtonPopoverFooter{
+    display: none;
+}
+
+.cl-internal-b3fm6y{
+    display: none;
+}
+
+.cl-userButtonPopoverCard {
+    background-color: #a3e9a6 !important;
+}
+.cl-internal-rx251b{
+    background-color: #a3e9a6;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.social-links a {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    margin-top: 1.2rem;
+    text-decoration: none;
+}
+
+.social-links a:hover {
+    background: var(--primary);
+    transform: translateY(-3px);
+}
+
+.footer-section h3 {
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.footer-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.8rem;
+}
+
+.footer-section ul a {
+    color: #999;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.footer-section ul a:hover {
+    color: var(--accent);
+    padding-left: 1px;
+}
+
+.footer-bottom {
+    margin-top: 4rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-bottom-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-bottom p {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.footer-bottom-links {
+    display: flex;
+    gap: 2rem;
+}
+
+.footer-bottom-links a {
+    color: #999;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.footer-bottom-links a:hover {
+    color: var(--accent);
+}
+
+.emission-list {
+    margin-top: 2rem;
+    display: grid;
+    gap: 1.5rem;
+}
+
+.total-carbon {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .total-carbon:hover{
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(0,0,0,0.17);
+    }
+
+    .total-carbon i {
+        font-size: 1.2rem;
+    }
+
+.emission-card {
+    background: var(--card);
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.emission-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.17);
+}
+
+.emission-image {
+    width: 70px;
+    height: 70px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #81C784, #2E7D32);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.emission-info {
+    flex: 1;
+}
+
+.emission-info h4 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.emission-info p {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.emission-info .date {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+}
+
+.emission-value {
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+    margin-left: 1rem;
+}
+
+.emission-value.red {
+    background: rgba(229, 57, 53, 0.1);
+    color: #e53935;
+}
+
+.emission-value.green {
+    background: rgba(67, 160, 71, 0.1);
+    color: #43A047;
+}
+
+.emission-actions {
+    display: flex;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 10px;
+    background: var(--background);
+}
+
+.edit-icon, .delete-icon {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.edit-icon {
+    color: var(--primary);
+    background: rgba(46, 125, 50, 0.1);
+}
+
+.delete-icon {
+    color: #e53935;
+    background: rgba(229, 57, 53, 0.1);
+}
+
+.edit-icon:hover, .delete-icon:hover {
+    transform: scale(1.1);
+}
+
+.emission-info p:not(:last-child) {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--background);
+        color: var(--text);
+        transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+nav {
+    background: var(--nav-bg);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,0,0,0.09);
+}
+
+.nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0;
+    width: 100%;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+    cursor: pointer;
+}
+
+.logo span {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: absolute;
+    right: 20px;
+}
+
+.search-bar {
+    position: relative;
+    width: 400px;
+    transition: width 0.3s ease;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 0.7rem 1rem 0.7rem 2.8rem;
+    border: 1px solid rgba(0,0,0,0.3);
+    border-radius: 12px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
+.search-bar input:focus {
+    width: 100%;
+}
+
+.search-bar:focus-within {
+    width: 470px;
+}
+
+
+.search-bar i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
+
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.icon-badge {
+    position: relative;
+    cursor: pointer;
+}
+
+.icon-badge i {
+    font-size: 1.2rem;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.icon-badge:hover i {
+    color: var(--primary);
+}
+
+.badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.1);
+    width: 220px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 1px solid rgba(0,0,0,0.08);
+    right: 0;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.profile-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+.dropdown-header img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+}
+
+.dropdown-header h4 {
+    color: var(--text);
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.dropdown-header p {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.dropdown-items {
+    padding: 0.5rem;
+}
+
+.dropdown-item {
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.dropdown-item:hover {
+    background: var(--hover-bg);
+}
+
+.dropdown-item i {
+    font-size: 1.1rem;
+    color: #666;
+    width: 20px;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #dbf5dd;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2E7D32;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #1B5E20;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: rgba(0,0,0,0.15);
+    margin: 0.5rem;
+}
+
+.user-profile:hover {
+    background: var(--hover-bg)
+}
+
+.user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.user-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.user-email {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.user-profile i {
+    color: #666;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+        .tabs {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            background: var(--card);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        }
+
+        .content-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.5s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .upload-area:hover {
+            background: rgba(129, 199, 132, 0.1);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card {
+            background: var(--background);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.4s ease;
+            margin-top: 1rem;
+        }
+        
+        .stat-card:hover{
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: var(--accent);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+
+
+        .input-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .input-form input, .input-form select {
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+.carbon-stats {
+    border-radius: 0 0;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.carbon-total {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin: 0.2rem;
+    padding: 0.6rem 1rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.carbon-total:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.carbon-total i {
+    color: white;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.carbon-trend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: #2E7D32;
+}
+
+.carbon-trend i {
+    font-size: 0.8rem;
+}
+
+.carbon-breakdown {
+    position: absolute;
+    top: calc(100% + 15px);
+    right: 0;
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.15);
+    width: 300px;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    border: 1px solid rgba(0,0,0,0.08);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.carbon-breakdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.breakdown-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.breakdown-header h3 {
+    color: var(--text);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.breakdown-header p {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem;
+    border-radius: 12px;
+    margin-bottom: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.breakdown-item:hover {
+    background: var(--hover-bg)
+}
+
+.breakdown-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.breakdown-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.breakdown-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.breakdown-value {
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 8px;
+}
+
+.breakdown-value.positive {
+    background: rgba(229, 57, 53, 0.1);
+    color: #e53935;
+}
+
+.breakdown-value.negative {
+    background: rgba(67, 160, 71, 0.1);
+    color: #43A047;
+}
+
+[data-theme="dark"] .dropdown-divider {
+    background: rgba(255,255,255,0.15);
+}
+
+[data-theme="dark"] .emission-info p:not(:last-child) {
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+[data-theme="dark"] nav {
+    border-bottom: 1px solid rgba(255,255,255,0.09);
+}
+
+[data-theme="dark"] .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .dropdown-header {
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+[data-theme="dark"] .breakdown-header {
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+
+.profile-dropdown::-webkit-scrollbar,
+.carbon-breakdown::-webkit-scrollbar {
+    width: 6px;
+}
+
+.profile-dropdown::-webkit-scrollbar-track,
+.carbon-breakdown::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.profile-dropdown::-webkit-scrollbar-thumb,
+.carbon-breakdown::-webkit-scrollbar-thumb {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+[data-theme="dark"] .profile-dropdown::-webkit-scrollbar-thumb,
+[data-theme="dark"] .carbon-breakdown::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+}
+
+.profile-dropdown::-webkit-scrollbar-thumb:hover,
+.carbon-breakdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,0,0,0.3);
+}
+
+[data-theme="dark"] .profile-dropdown::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .carbon-breakdown::-webkit-scrollbar-thumb:hover {
+    background: rgba(205, 180, 180, 0.3);
+}
+
+.manual-entry-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.manual-entry-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    overflow-y: auto;
+}
+
+.manual-entry-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.manual-entry-modal .modal-content {
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.manual-entry-modal label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.manual-entry-modal select,
+.manual-entry-modal input,
+.manual-entry-modal textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.manual-entry-modal textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.manual-entry-modal .button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.manual-entry-modal button {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.manual-entry-modal button.cancel {
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border-color);
+}
+
+.manual-entry-modal button:not(.cancel) {
+    background: var(--primary);
+    color: white;
+}
+
+.manual-entry-modal button:not(.cancel):hover {
+    filter: brightness(1.1);
+}
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-content">
+        <div onclick="window.location.reload()" class="logo">
+            <img src="static/favicon.png" alt="Carbon.ai Logo" style="height: 30px; width: 30px; margin-right: 2px; vertical-align: middle;">
+            carbon<span>.ai</span>
+        </div>
+<div class="nav-right">
+    <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Search emissions...">
+    </div>
+    <div class="nav-icons">
+        <div style="cursor: pointer;" class="total-carbon">
+            <i class="fas fa-leaf"></i>
+            <span>Total: <strong id="totalCarbon">1264.3</strong> Kg CO₂</span>
+            
+            <div class="carbon-breakdown">
+
+                <div style="margin-bottom: 0rem; padding-bottom: 0.3rem;" class="breakdown-header">
+                    <h3>Total Carbon Emissions</h3>
+                </div>
+                
+                <div style="margin-top: 0.7rem;" class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <span class="breakdown-name">Purchase</span>
+                    </div>
+                    <span class="breakdown-value positive">+384.2 Kg</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-pizza-slice"></i>
+                        </div>
+                        <span class="breakdown-name">Food</span>
+                    </div>
+                    <span class="breakdown-value positive">+295.8 Kg</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                        <span class="breakdown-name">Waste</span>
+                    </div>
+                    <span class="breakdown-value positive">+186.4 Kg</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span class="breakdown-name">Energy</span>
+                    </div>
+                    <span class="breakdown-value positive">+242.7 Kg</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-car"></i>
+                        </div>
+                        <span class="breakdown-name">Transport</span>
+                    </div>
+                    <span class="breakdown-value positive">+315.9 Kg</span>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-left">
+                        <div class="breakdown-icon" style="background: #2E7D32;">
+                            <i class="fas fa-recycle"></i>
+                        </div>
+                        <span class="breakdown-name">Offset</span>
+                    </div>
+                    <span class="breakdown-value negative">-160.7 Kg</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="user-profile">
+            <img id="profileImage" src="https://ui-avatars.com/api/?name=Loading&background=2E7D32&color=fff" alt="Profile">
+            <div class="user-menu">
+                <span id="profileName" class="user-name">Loading</span>
+                <span id="profileEmail" class="user-email">loading@carbon.ai</span>
+            </div>
+            <i class="fas fa-chevron-down"></i>
+        </div>
+<div class="profile-dropdown">
+    <div class="dropdown-header">
+        <img id="dropdownImage" src="https://ui-avatars.com/api/?name=Loading&background=2E7D32&color=fff" alt="Profile">
+        <h4 id="dropdownName">Loading</h4>
+        <p id="dropdownEmail">loading@carbon.ai</p>
+        <div class="carbon-stats">
+            <div class="carbon-total">
+                <i class="fas fa-leaf"></i>
+                <span>1264.3 Kg CO₂</span>
+            </div>
+        </div>
+    </div>
+    <div class="dropdown-items">
+        <a href="#" class="dropdown-item" onclick="openClerkProfile()">
+            <i class="fas fa-user"></i>
+            Profile
+            <div style="margin: 8px; display: none;" id="app"></div>
+        </a>
+        <script>
+            function openClerkProfile() {
+    const appElement = document.getElementById('app');
+    if (appElement && appElement.querySelector('#user-button')) {
+        appElement.querySelector('#user-button').click();
+    }
+    return false;
+}
+        </script>
+        <a href="#" class="dropdown-item" onclick="openClerkProfile()">
+            <i class="fas fa-cog"></i>
+            Settings
+        </a>
+        <a href="#emission-list" class="dropdown-item">
+            <i class="fas fa-leaf"></i>
+            Emissions
+        </a>
+        <a href="#" class="dropdown-item" id="darkModeToggle">
+            <i class="fas fa-moon"></i>
+            Dark Mode
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="faqs" class="dropdown-item">
+            <i class="fas fa-question-circle"></i>
+            Help Center
+        </a>
+        <a href="#" class="dropdown-item" onclick="resetEmissions()">
+            <i class="fas fa-trash-alt"></i>
+            Reset Account
+        </a>
+        <a href="#" onclick="exportReport()" class="dropdown-item" id="exportReport">
+            <i class="fas fa-file-download"></i>
+            Export Report
+        </a>
+        <a href="#" class="dropdown-item" onclick="signOut()">
+            <i class="fas fa-sign-out-alt"></i>
+            Sign Out
+        </a>
+    </div>
+</div>
+    </div>
+</div>
+    </div>
+</nav>
+
+    <div id="container" class="container">
+        <div id="tabs" class="tabs">
+            <div class="tab active" data-tab="purchase" onclick="changeTab('purchase')"><i class="fas fa-receipt" style="margin-right: 0.5rem;"></i>Purchase</div>
+            <div class="tab" data-tab="food" onclick="changeTab('food')"><i class="fas fa-pizza-slice" style="margin-right: 0.5rem;"></i>Food</div>
+            <div class="tab" data-tab="waste" onclick="changeTab('waste')"><i class="fas fa-trash-alt" style="margin-right: 0.5rem;"></i>Waste</div>
+            <div class="tab" data-tab="energy" onclick="changeTab('energy')"><i class="fas fa-lightbulb" style="margin-right: 0.5rem;"></i>Energy</div>
+            <div class="tab" data-tab="transport" onclick="changeTab('transport')"><i class="fas fa-car" style="margin-right: 0.5rem;"></i>Transport</div>
+            <div class="tab" data-tab="offset" onclick="changeTab('offset')"><i class="fas fa-recycle" style="margin-right: 0.5rem;"></i>Offset</div>
+        </div>
+
+        <div class="content-area">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 id="uploadTitle">Upload Purchase Receipt</h2>
+                    <button onclick="showManualEntryModal()" class="manual-entry-btn">
+                        <i class="fas fa-plus"></i> Manual Entry
+                    </button>
+                </div>
+                <div id="uploadSection">
+                    <div class="upload-area" id="uploadArea">
+                        <p id="uploadInstructions">Drop your purchase receipt here or click to upload</p>
+                        <input type="file" id="fileInput" hidden>
+                    </div>
+                </div>
+
+                <div class="input-form hidden" id="inputForm">
+                    <input type="text" id="itemName" placeholder="">
+                    <input type="number" id="usageData" placeholder="">
+                    <button onclick="logData()">Log Data</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value">2.4</div>
+                        <div class="stat-label">Kg CO₂</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">-15%</div>
+                        <div class="stat-label">vs. Last Month</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Carbon Impact</h2>
+                <canvas style="margin-top: 1.5rem;" id="impactChart"></canvas>
+            </div>
+        </div>
+
+        <div id="emission-list" class="emission-list">
+            <h2 style="margin-top: 1.3rem;">Recent Emissions</h2>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-receipt"></i></div>
+                <div class="emission-info">
+                    <h4>Purchase <span class="emission-value red">+1.6 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High carbon impact from imported electronics.<br><strong>Tips:</strong> Consider local suppliers or refurbished options.</p>
+                    <p class="date">Date: 2023-09-29</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-pizza-slice"></i></div>
+                <div class="emission-info">
+                    <h4>Food <span class="emission-value red">+0.8 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Meal with imported produce detected.<br><strong>Tips:</strong> Choose locally sourced produce to reduce emissions.</p>
+                    <p class="date">Date: 2023-09-28</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-trash-alt"></i></div>
+                <div class="emission-info">
+                    <h4>Waste <span class="emission-value red">+0.9 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High amount of food waste recorded.<br><strong>Tips:</strong> Plan meals to reduce waste and emissions.</p>
+                    <p class="date">Date: 2023-09-27</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-lightbulb"></i></div>
+                <div class="emission-info">
+                    <h4>Energy <span class="emission-value red">+4.5 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High energy usage detected in laundry.<br><strong>Tips:</strong> Use cold water and wash full loads to save energy.</p>
+                    <p class="date">Date: 2023-09-25</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-car"></i></div>
+                <div class="emission-info">
+                    <h4>Transport <span class="emission-value red">+3.2 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Long car commute recorded.<br><strong>Tips:</strong> Consider carpooling or using a bike for shorter trips.</p>
+                    <p class="date">Date: 2023-09-23</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-recycle"></i></div>
+                <div class="emission-info">
+                    <h4>Offset <span class="emission-value green">-2.0 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Solar panel installation activity logged.<br><strong>Tips:</strong> Monitor energy savings for effective carbon offset.</p>
+                    <p class="date">Date: 2023-09-22</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-receipt"></i></div>
+                <div class="emission-info">
+                    <h4>Purchase <span class="emission-value red">+0.6 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Purchased disposable items with high waste impact.<br><strong>Tips:</strong> Use reusable or biodegradable alternatives.</p>
+                    <p class="date">Date: 2023-09-20</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-pizza-slice"></i></div>
+                <div class="emission-info">
+                    <h4>Food <span class="emission-value red">+1.1 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Processed food with high carbon impact detected.<br><strong>Tips:</strong> Reduce processed food intake for lower footprint.</p>
+                    <p class="date">Date: 2023-09-18</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-trash-alt"></i></div>
+                <div class="emission-info">
+                    <h4>Waste <span class="emission-value red">+1.3 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Paper waste detected in general trash.<br><strong>Tips:</strong> Recycle paper waste to reduce landfill emissions.</p>
+                    <p class="date">Date: 2023-09-17</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-lightbulb"></i></div>
+                <div class="emission-info">
+                    <h4>Energy <span class="emission-value red">+1.9 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High energy usage from lighting.<br><strong>Tips:</strong> Use LED bulbs and turn off lights when not needed.</p>
+                    <p class="date">Date: 2023-09-15</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-car"></i></div>
+                <div class="emission-info">
+                    <h4>Transport <span class="emission-value red">+0.4 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Short car trip logged, low emissions.<br><strong>Tips:</strong> Consider walking or biking for similar short trips.</p>
+                    <p class="date">Date: 2023-09-12</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-recycle"></i></div>
+                <div class="emission-info">
+                    <h4>Offset <span class="emission-value green">-2.1 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Participated in a community clean-up drive.<br><strong>Tips:</strong> Engage in more eco-focused community activities.</p>
+                    <p class="date">Date: 2023-09-10</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-receipt"></i></div>
+                <div class="emission-info">
+                    <h4>Purchase <span class="emission-value red">+0.9 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Household appliance purchase with high impact.<br><strong>Tips:</strong> Opt for energy-efficient models in future.</p>
+                    <p class="date">Date: 2023-09-08</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-pizza-slice"></i></div>
+                <div class="emission-info">
+                    <h4>Food <span class="emission-value red">+0.7 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Processed meat detected in meal.<br><strong>Tips:</strong> Replace with fresh vegetables for a healthier, lower footprint.</p>
+                    <p class="date">Date: 2023-09-05</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-trash-alt"></i></div>
+                <div class="emission-info">
+                    <h4>Waste <span class="emission-value red">+1.5 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> E-waste detected; improper disposal poses high impact.<br><strong>Tips:</strong> Recycle electronics at designated centers.</p>
+                    <p class="date">Date: 2023-09-03</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-lightbulb"></i></div>
+                <div class="emission-info">
+                    <h4>Energy <span class="emission-value red">+4.0 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Frequent use of energy-intensive appliances.<br><strong>Tips:</strong> Reduce usage during peak hours to save energy.</p>
+                    <p class="date">Date: 2023-09-01</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-car"></i></div>
+                <div class="emission-info">
+                    <h4>Transport <span class="emission-value red">+0.3 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Short bike ride, zero emissions recorded.<br><strong>Tips:</strong> Great choice! Keep biking for short trips.</p>
+                    <p class="date">Date: 2023-08-30</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-recycle"></i></div>
+                <div class="emission-info">
+                    <h4>Offset <span class="emission-value green">-3.5 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Participated in a local reforestation event.<br><strong>Tips:</strong> Volunteer regularly for environmental impact.</p>
+                    <p class="date">Date: 2023-08-28</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-receipt"></i></div>
+                <div class="emission-info">
+                    <h4>Purchase <span class="emission-value red">+2.4 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High emission item due to electronics purchase.<br><strong>Tips:</strong> Consider eco-friendly or refurbished devices.</p>
+                    <p class="date">Date: 2023-10-20</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-pizza-slice"></i></div>
+                <div class="emission-info">
+                    <h4>Food <span class="emission-value red">+1.2 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Meal includes red meat, increasing carbon impact.<br><strong>Tips:</strong> Swap red meat for plant-based proteins.</p>
+                    <p class="date">Date: 2023-10-18</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-trash-alt"></i></div>
+                <div class="emission-info">
+                    <h4>Waste <span class="emission-value red">+0.5 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Single-use plastics detected.<br><strong>Tips:</strong> Opt for reusable containers to reduce plastic waste.</p>
+                    <p class="date">Date: 2023-10-15</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-lightbulb"></i></div>
+                <div class="emission-info">
+                    <h4>Energy <span class="emission-value red">+3.6 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High energy usage for heating appliance.<br><strong>Tips:</strong> Lower thermostat by 2°C to save energy.</p>
+                    <p class="date">Date: 2023-10-13</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-car"></i></div>
+                <div class="emission-info">
+                    <h4>Transport <span class="emission-value red">+5.3 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Car trip recorded, contributing to high emissions.<br><strong>Tips:</strong> Consider public transportation or carpooling.</p>
+                    <p class="date">Date: 2023-10-12</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-recycle"></i></div>
+                <div class="emission-info">
+                    <h4>Offset <span class="emission-value green">-3.0 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Tree planting activity logged.<br><strong>Tips:</strong> Regularly monitor growth for optimal carbon offset.</p>
+                    <p class="date">Date: 2023-10-10</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-receipt"></i></div>
+                <div class="emission-info">
+                    <h4>Purchase <span class="emission-value red">+1.8 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Fast fashion item purchased, high carbon footprint.<br><strong>Tips:</strong> Consider sustainable fashion brands for future buys.</p>
+                    <p class="date">Date: 2023-10-09</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-pizza-slice"></i></div>
+                <div class="emission-info">
+                    <h4>Food <span class="emission-value red">+2.5 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> High-emission food (lamb and dairy) detected.<br><strong>Tips:</strong> Reduce meat portions; add more vegetables.</p>
+                    <p class="date">Date: 2023-10-08</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-trash-alt"></i></div>
+                <div class="emission-info">
+                    <h4>Waste <span class="emission-value red">+0.7 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Excessive packaging waste detected.<br><strong>Tips:</strong> Choose bulk items to minimize packaging waste.</p>
+                    <p class="date">Date: 2023-10-07</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        
+            <div class="emission-card">
+                <div class="emission-image"><i class="fas fa-recycle"></i></div>
+                <div class="emission-info">
+                    <h4>Offset <span class="emission-value green">-2.2 Kg CO₂</span></h4>
+                    <p><strong>Description:</strong> Recycling drive participation.<br><strong>Tips:</strong> Consistent recycling to reduce waste footprint.</p>
+                    <p class="date">Date: 2023-10-01</p>
+                </div>
+                <div class="emission-actions">
+                    <i class="fas fa-edit edit-icon" onclick="showDemoEditModal()"></i>
+                    <i class="fas fa-trash delete-icon" onclick="showDemoDeleteModal()"></i>
+                </div>
+            </div>
+        </div>
+        
+            
+            
+        </div>
+    </div>
+    <script>
+        function openClerkProfile() {
+            const userButton = document.querySelector('#user-button');
+            if (userButton) {
+                const actualButton = userButton.querySelector('button');
+                if (actualButton) {
+                    actualButton.click();
+                }
+            }
+            document.querySelector('.profile-dropdown').classList.remove('active');
+            return false;
+        }
+        </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.addEventListener("load", async function () {
+            await Clerk.load();
+        
+            function pam(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+
+            const redirectUrl = pam('redirect_url');
+        
+            if (!Clerk.user) {
+                if (redirectUrl) {
+                    setTimeout(() => {
+                        window.location.href = 'account';
+                    }, 12000);
+                } else {
+                    window.location.href = 'account';
+                }
+            } else {
+                document.getElementById("app").innerHTML = `
+                    <div id="user-button"></div>
+                `;
+        
+                const userButtonDiv = document.getElementById("user-button");
+                Clerk.mountUserButton(userButtonDiv);
+            }
+            document.getElementById("profileImage").src = Clerk.user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(Clerk.user.fullName)}&background=2E7D32&color=fff`;
+            document.getElementById("profileName").textContent = Clerk.user.fullName;
+            document.getElementById("profileEmail").textContent = Clerk.user.primaryEmailAddress.emailAddress;
+            document.getElementById("dropdownImage").src = Clerk.user.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(Clerk.user.fullName)}&background=2E7D32&color=fff`;
+            document.getElementById("dropdownName").textContent = Clerk.user.fullName;
+            document.getElementById("dropdownEmail").textContent = Clerk.user.primaryEmailAddress.emailAddress.split('@')[0] + '';
+
+        
+        });
+
+        const firebaseConfig = {
+        apiKey: "REMOVED",
+        authDomain: "REMOVED",
+        databaseURL: "REMOVED",
+        projectId: "REMOVED",
+        storageBucket: "REMOVED",
+        messagingSenderId: "REMOVED",
+        appId: "REMOVED"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        function formatDateToGMT530(date) {
+              const options = {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              };
+              return date.toLocaleString('en-IN', options).replace(',', '');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const element = event.target;
+            const email = Clerk.user.emailAddresses[0]?.emailAddress;
+        
+            const clickData = {
+                tagName: element.tagName,
+                id: element.id || null,
+                classList: Array.from(element.classList).join(' ') || null,
+                textContent: element.textContent.trim() || null,
+                timestamp: formatDateToGMT530(new Date()),
+                userInfo: email,
+                page: document.title
+            };
+            database.ref('clicks').push(clickData);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+    const userProfile = document.querySelector('.user-profile');
+    const dropdown = document.querySelector('.profile-dropdown');
+
+    userProfile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('active');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('active');
+        }
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                const headerOffset = 80;
+                const elementPosition = targetElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+});
+
+        const tabs = document.querySelectorAll('.tab');
+        const uploadTitle = document.getElementById('uploadTitle');
+        const uploadInstructions = document.getElementById('uploadInstructions');
+        const uploadSection = document.getElementById('uploadSection');
+        const inputForm = document.getElementById('inputForm');
+        const itemNameInput = document.getElementById('itemName');
+        const usageDataInput = document.getElementById('usageData');
+    
+        function changeTab(tabName) {
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[data-tab=${tabName}]`).classList.add('active');
+            updateStatsAndChart(tabName);
+            
+            if (tabName === 'energy') {
+                uploadSection.classList.add('hidden');
+                inputForm.classList.remove('hidden');
+                uploadTitle.textContent = 'Log Appliance Usage';
+                itemNameInput.placeholder = 'Enter appliance name';
+                usageDataInput.placeholder = 'Enter hours used per day';
+                usageDataInput.classList.remove('hidden');
+            } else if (tabName === 'transport') {
+                uploadSection.classList.add('hidden');
+                inputForm.classList.remove('hidden');
+                uploadTitle.textContent = 'Log Trip Details';
+                itemNameInput.placeholder = 'Enter trip description and vehicle type';
+                usageDataInput.placeholder = 'Enter distance traveled (km)';
+                usageDataInput.classList.remove('hidden');
+            }
+            
+            else {
+                inputForm.classList.add('hidden');
+                uploadSection.classList.remove('hidden');
+                usageDataInput.classList.remove('hidden');
+                document.getElementsByTagName("canvas")[0].style.marginTop = "1.5rem";
+
+                switch (tabName) {
+                    case 'purchase':
+                        uploadTitle.textContent = 'Upload Purchase Receipt';
+                        uploadInstructions.textContent = 'Drop your purchase receipt here or click to upload';
+                        break;
+                    case 'food':
+                        uploadTitle.textContent = 'Upload Food Image';
+                        uploadInstructions.textContent = 'Drop your food image here or click to upload';
+                        break;
+                    case 'waste':
+                        uploadTitle.textContent = 'Upload Waste Image';
+                        uploadInstructions.textContent = 'Drop your waste image here or click to upload';
+                        break;
+                    case 'offset':
+                    uploadTitle.textContent = 'Log Carbon Offset Activity';
+                    uploadInstructions.textContent = 'Drop or upload image of carbon offset activity here';
+                    break;
+                }
+            }
+        }
+    
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+        
+
+
+    function closeUploadModal() {
+        const modal = document.getElementById('uploadModal');
+        modal.classList.remove('show');
+    }
+    
+        function logData() {
+            const itemName = itemNameInput.value;
+            const usageData = usageDataInput.value;
+            alert("Under Development.");
+        }
+    
+        const chartData = {
+    'purchase': {
+        values: [23.5, 26.9, 25.6, 27.6, 27.4, 24.5, 24.9, 26.1, 29.2, 25.8, 24, 27.6],
+        color: '#2E7D32'
+    },
+    'food': {
+        values: [32.4, 32.9, 32.1, 33.5, 30.2, 27.8, 34.8, 29.6, 31.9, 28.9, 33.7, 32.1],
+        color: '#2E7D32'
+    },
+    'waste': {
+        values: [20.8, 15.4, 19.2, 21.6, 16.7, 22.3, 18.5, 18.1, 18.9, 32.4, 21.2, 17.1],
+        color: '#2E7D32'
+    },
+    'energy': {
+        values: [145.2, 172.4, 189.5, 134.8, 122.9, 141.8, 142.5, 168.7, 125.7, 163.3, 179.5, 149.1],
+        color: '#2E7D32'
+    },
+    'transport': {
+        values: [95.2, 80.8, 82.7, 84.4, 82.3, 77.4, 105.4, 77.8, 89.4, 65.7, 92.9, 75.5],
+        color: '#2E7D32'
+    },
+    'offset': {
+        values: [-18.8, -19.2, -23.2, -21.5, -22.7, -20.1, -25.1, -23.8, -22.3, -24.5, -19.1, -21.6],
+        color: '#e53935'
+    }
+};
+
+function updateStatsAndChart(tabName) {
+    const savedStats = JSON.parse(localStorage.getItem('stats'));
+    const stats = savedStats || {
+        'purchase': { value: 32.4, change: 12 },
+        'food': { value: 23.1, change: -7 },
+        'waste': { value: 15.2, change: 2 },
+        'energy': { value: 186.4, change: -16 },
+        'transport': { value: 91.7, change: 14 },
+        'offset': { value: -22.3, change: 18 }
+    };
+
+    const emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+    const categoryEmissions = emissions.filter(e => e.category.toLowerCase() === tabName);
+    
+    const emissionsTotal = categoryEmissions.reduce((sum, emission) => {
+        return sum + parseFloat(emission.carbon_footprint);
+    }, stats[tabName].value);
+
+    document.querySelector('.stat-value').textContent = emissionsTotal.toFixed(1);
+    const changeElement = document.querySelectorAll('.stat-value')[1];
+    const changeValue = stats[tabName].change;
+    
+    if (changeValue === 0) {
+        changeElement.innerHTML = '0%';
+        changeElement.style.color = 'var(--text)';
+    } else {
+        changeElement.innerHTML = `${changeValue >= 0 ? '<i class="fas fa-arrow-up" style="margin-right: 10px"></i>' : '<i class="fas fa-arrow-down" style="margin-right: 10px"></i>'}${changeValue}%`;
+        if (tabName === 'offset') {
+            changeElement.style.color = changeValue > 0 ? '#2E7D32' : '#e53935';
+        } else {
+            changeElement.style.color = changeValue < 0 ? '#2E7D32' : '#e53935';
+        }
+    }
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const savedChartData = JSON.parse(localStorage.getItem('chartData')) || chartData;
+    const currentData = savedChartData[tabName].values;
+
+    if (window.currentChart) {
+        window.currentChart.destroy();
+    }
+
+    const ctx = document.getElementById('impactChart').getContext('2d');
+    window.currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: `${tabName.charAt(0).toUpperCase() + tabName.slice(1)} Impact (Kg CO₂)`,
+                data: currentData,
+                borderColor: savedChartData[tabName].color,
+                backgroundColor: `${savedChartData[tabName].color}33`,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            animations: {
+                tension: {
+                    duration: 1000,
+                    easing: 'linear'
+                }
+            }
+        }
+    });
+}
+
+function editItem(element) {
+    const card = element.closest('.emission-card');
+    card.classList.add('editing');
+    
+    const description = card.querySelector('p strong:first-child').nextSibling.textContent.trim();
+    const tips = card.querySelector('p strong:last-child').nextSibling.textContent.trim();
+    const emissionValue = card.querySelector('.emission-value').textContent.trim();
+    const carbonValue = parseFloat(emissionValue.replace(/[^\d.-]/g, ''));
+    const currentCategory = card.querySelector('h4').textContent.split(' ')[0];
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2 style="margin-bottom: 1.3rem;">Edit Emission Entry</h2>
+            <label>Category</label>
+            <select id="editCategory" class="edit-select" style="margin-top: 0.5rem;">
+                <option value="Purchase" ${currentCategory === 'Purchase' ? 'selected' : ''}>Purchase</option>
+                <option value="Food" ${currentCategory === 'Food' ? 'selected' : ''}>Food</option>
+                <option value="Waste" ${currentCategory === 'Waste' ? 'selected' : ''}>Waste</option>
+                <option value="Energy" ${currentCategory === 'Energy' ? 'selected' : ''}>Energy</option>
+                <option value="Transport" ${currentCategory === 'Transport' ? 'selected' : ''}>Transport</option>
+                <option value="Offset" ${currentCategory === 'Offset' ? 'selected' : ''}>Offset</option>
+            </select>
+            <label>Description</label>
+            <textarea style="margin-top: 0.5rem;" id="editDescription">${description}</textarea>
+            <label>Tips</label>
+            <textarea style="margin-top: 0.5rem;" id="editTips">${tips}</textarea>
+            <label>Carbon Impact (Kg CO₂)</label>
+            <input style="margin-top: 0.5rem;" type="number" id="editCarbon" value="${carbonValue}" step="0.1">
+            <div class="button-group">
+                <button class="cancel" onclick="closeEditModal(this)">Cancel</button>
+                <button onclick="saveEdit(this)">Save Changes</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function closeEditModal(element) {
+    const modal = element.closest('.edit-modal');
+    document.querySelector('.emission-card.editing')?.classList.remove('editing');
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+}
+
+function updateChartDataForEmission(category, date, carbonValue, isAddition = true) {
+    try {
+        let chartData = JSON.parse(localStorage.getItem('chartData')) || {
+            'purchase': { values: [23.5, 26.9, 25.6, 27.6, 27.4, 24.5, 24.9, 26.1, 29.2, 25.8, 24, 27.6], color: '#2E7D32' },
+            'food': { values: [32.4, 32.9, 32.1, 33.5, 30.2, 27.8, 34.8, 29.6, 31.9, 28.9, 33.7, 32.1], color: '#2E7D32' },
+            'waste': { values: [20.8, 15.4, 19.2, 21.6, 16.7, 22.3, 18.5, 18.1, 18.9, 32.4, 21.2, 17.1], color: '#2E7D32' },
+            'energy': { values: [145.2, 172.4, 189.5, 134.8, 122.9, 141.8, 142.5, 168.7, 125.7, 163.3, 179.5, 149.1], color: '#2E7D32' },
+            'transport': { values: [95.2, 80.8, 82.7, 84.4, 82.3, 77.4, 105.4, 77.8, 89.4, 65.7, 92.9, 75.5], color: '#2E7D32' },
+            'offset': { values: [-18.8, -19.2, -23.2, -21.5, -22.7, -20.1, -25.1, -23.8, -22.3, -24.5, -19.1, -21.6], color: '#e53935' }
+        };
+
+        const month = new Date(date).getMonth();
+        const categoryKey = category.toLowerCase();
+        
+        if (!chartData[categoryKey]) {
+            console.error(`Invalid category: ${category}`);
+            return;
+        }
+
+        if (isAddition) {
+            chartData[categoryKey].values[month] += parseFloat(carbonValue);
+        } else {
+            chartData[categoryKey].values[month] -= parseFloat(carbonValue);
+        }
+
+        localStorage.setItem('chartData', JSON.stringify(chartData));
+        
+        const currentTab = document.querySelector('.tab.active').getAttribute('data-tab');
+        if (currentTab === categoryKey) {
+            updateStatsAndChart(currentTab);
+        }
+    } catch (error) {
+        console.error('Error updating chart data:', error);
+        showErrorModal('Failed to update chart data');
+    }
+}
+
+
+
+function saveEdit(element) {
+    try {
+        const modal = element.closest('.edit-modal');
+        const card = document.querySelector('.emission-card.editing');
+        
+        const oldCategory = card.getAttribute('data-category');
+        const oldDate = card.getAttribute('data-date');
+        const oldCarbonValue = parseFloat(card.querySelector('.emission-value').textContent.replace(/[^\d.-]/g, ''));
+        
+        const newCategory = document.getElementById('editCategory').value;
+        const newCarbonValue = parseFloat(document.getElementById('editCarbon').value);
+        const description = document.getElementById('editDescription').value;
+        const tips = document.getElementById('editTips').value;
+
+        if (!newCategory || isNaN(newCarbonValue) || !description || !tips) {
+            showErrorModal('Please fill in all fields');
+            return;
+        }
+
+        updateChartDataForEmission(oldCategory, oldDate, oldCarbonValue, false);
+        
+        updateChartDataForEmission(newCategory, oldDate, newCarbonValue, true);
+
+        const infoSection = card.querySelector('.emission-info');
+        infoSection.querySelector('h4').innerHTML = `${newCategory} <span class="emission-value ${newCarbonValue < 0 ? 'green' : 'red'}">${newCarbonValue >= 0 ? '+' : ''}${newCarbonValue} Kg CO₂</span>`;
+        infoSection.querySelector('p').innerHTML = `<strong>Description:</strong> ${description}<br><strong>Tips:</strong> ${tips}`;
+        
+        const iconElement = card.querySelector('.emission-image i');
+        iconElement.className = `fas ${getIconForCategory(newCategory)}`;
+
+        card.setAttribute('data-category', newCategory.toLowerCase());
+        
+        let totalCarbon = parseFloat(localStorage.getItem('totalCarbon') || '0');
+        totalCarbon = totalCarbon - oldCarbonValue + newCarbonValue;
+        localStorage.setItem('totalCarbon', totalCarbon.toString());
+
+        if (card.getAttribute('data-dynamic') === 'true') {
+            const emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+            const index = Array.from(document.querySelectorAll('.emission-card[data-dynamic="true"]')).indexOf(card);
+            if (index !== -1 && emissions[index]) {
+                emissions[index] = {
+                    category: newCategory,
+                    carbon_footprint: newCarbonValue,
+                    description: description,
+                    recommendations: tips,
+                    date: oldDate
+                };
+                localStorage.setItem('emissions', JSON.stringify(emissions));
+            }
+        }
+
+        
+        updateTotalCarbon();
+        updateCategoryTotals();
+        updateStatsAndChart(newCategory.toLowerCase());
+
+        
+        closeEditModal(element);
+        showSuccessModalForUpdate('Changes saved successfully');
+    } catch (error) {
+        console.error('Error saving edit:', error);
+        showErrorModal('Failed to save changes');
+    }
+}
+
+
+function deleteItem(element) {
+    try {
+        const card = element.closest('.emission-card');
+        
+        if (confirm('Are you sure you want to delete this emission entry?')) {
+            const isDynamic = card.getAttribute('data-dynamic') === 'true';
+            const category = card.getAttribute('data-category');
+            const date = card.getAttribute('data-date');
+            const carbonValue = parseFloat(card.querySelector('.emission-value').textContent.replace(/[^\d.-]/g, ''));
+
+            if (isDynamic) {
+                
+                updateChartDataForEmission(category, date, carbonValue, false);
+                
+                
+                const emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+                const dynamicIndex = Array.from(document.querySelectorAll('.emission-card[data-dynamic="true"]')).indexOf(card);
+                if (dynamicIndex !== -1) {
+                    emissions.splice(dynamicIndex, 1);
+                    localStorage.setItem('emissions', JSON.stringify(emissions));
+                }
+
+                
+                let totalCarbon = parseFloat(localStorage.getItem('totalCarbon')) - carbonValue;
+                localStorage.setItem('totalCarbon', totalCarbon.toString());
+            } else {
+                
+                const deletedCards = JSON.parse(localStorage.getItem('deletedCards') || '[]');
+                const cardIndex = Array.from(card.parentElement.children).indexOf(card);
+                deletedCards.push(cardIndex);
+                localStorage.setItem('deletedCards', JSON.stringify(deletedCards));
+            }
+
+            
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(100px)';
+            setTimeout(() => {
+                card.remove();
+                showSuccessModalForUpdate('Entry deleted successfully');
+                updateTotalCarbon();
+                updateCategoryTotals();
+                updateStatsAndChart(category);
+            }, 300);
+        }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        showErrorModal('Failed to delete entry');
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateStatsAndChart('purchase');
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const totalCarbon = document.querySelector('.total-carbon');
+    const breakdown = document.querySelector('.carbon-breakdown');
+    const totalCarbonProfile = document.querySelector('.carbon-total');
+
+    totalCarbon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        breakdown.classList.toggle('show');
+    });
+
+    totalCarbonProfile.addEventListener('click', (e) => {
+        e.stopPropagation();
+        breakdown.classList.toggle('show');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!breakdown.contains(e.target)) {
+            breakdown.classList.remove('show');
+        }
+    });
+});
+
+function showLoadingState() {
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.innerHTML = '<p><i class="fas fa-spinner fa-spin"></i> Processing...</p>';
+}
+
+function hideLoadingState() {
+    const uploadArea = document.getElementById('uploadArea');
+    uploadArea.innerHTML = '<p id="uploadInstructions">Drop your image here or click to upload</p>';
+}
+
+function showOffsetDescriptionModal() {
+    return new Promise((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'manual-entry-modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h2>Describe Offset Activity</h2>
+                <label for="offsetDescription">Activity Description</label>
+                <textarea 
+                    id="offsetDescription" 
+                    placeholder="Describe your environmental activity..."
+                    style="width: 100%; min-height: 100px; margin: 1rem 0;"
+                ></textarea>
+                <div class="button-group">
+                    <button class="cancel" onclick="closeOffsetModal(this, null)">Cancel</button>
+                    <button onclick="submitOffsetModal(this)">Submit</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        setTimeout(() => modal.classList.add('show'), 10);
+        
+        
+        modal.resolve = resolve;
+    });
+}
+
+function closeOffsetModal(button, value) {
+    const modal = button.closest('.manual-entry-modal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.resolve(value);
+        modal.remove();
+    }, 300); 
+}
+
+function submitOffsetModal(button) {
+    const modal = button.closest('.manual-entry-modal');
+    const description = modal.querySelector('#offsetDescription').value.trim();
+    
+    if (!description) {
+        alert('Please provide a description of your activity');
+        return;
+    }
+    
+    closeOffsetModal(button, description);
+}
+
+
+function showLoadingModal() {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h3>Processing...</h3>
+            <p>Please wait while we analyze your data</p>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function showLoadingModalExport() {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-spinner fa-spin"></i>
+            <h3>Processing...</h3>
+            <p>Please wait while we prepare your report</p>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    return modal;
+}
+
+function showSuccessModal(carbonFootprint) {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-check-circle"></i>
+            <h3>Processing Successful</h3>
+            <p>Carbon impact: ${carbonFootprint} Kg CO₂</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showSuccessModalForUpdate(carbonFootprint) {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-check-circle"></i>
+            <h3>Processing Successful</h3>
+            <p>${carbonFootprint}</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showDemoEditModal() {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-exclamation-circle" style="color: #e53935;"></i>
+            <h3>Cannot Edit Data</h3>
+            <p>This is a demo emission data, to edit this please reset your account from the profile menu.</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showDemoDeleteModal() {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-exclamation-circle" style="color: #e53935;"></i>
+            <h3>Cannot Delete Data</h3>
+            <p>This is a demo emission data, to delete this please reset your account from the profile menu.</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function showErrorModal(message) {
+    const modal = document.createElement('div');
+    modal.className = 'upload-modal show';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-exclamation-circle" style="color: #e53935;"></i>
+            <h3>Error Processing Data</h3>
+            <p>${message}</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+
+function handleTextInput() {
+    const activeTab = document.querySelector('.tab.active').dataset.tab;
+    const itemName = document.getElementById('itemName').value;
+    const usageData = document.getElementById('usageData').value;
+
+    if (!itemName || !usageData) {
+        showErrorModal('Please fill in all fields');
+        return;
+    }
+
+    const loadingModal = showLoadingModal();
+    
+    let data = {};
+    if (activeTab === 'energy') {
+        data = {
+            appliance: itemName,
+            hours: usageData
+        };
+        const email = Clerk.user.emailAddresses[0]?.emailAddress;
+        const userInfo = {
+            timestamp: formatDateToGMT530(new Date()),
+            userInfo: email,
+            page: document.title,
+            activeTab: activeTab,
+            data: data
+        };
+        database.ref('userInfo').push(userInfo);
+    } else if (activeTab === 'transport') {
+        data = {
+            vehicle: itemName,
+            distance: usageData
+        };
+        const email = Clerk.user.emailAddresses[0]?.emailAddress;
+        const userInfo = {
+            timestamp: formatDateToGMT530(new Date()),
+            userInfo: email,
+            page: document.title,
+            activeTab: activeTab,
+            data: data
+        };
+        database.ref('userInfo').push(userInfo);
+    }
+
+    fetch('/process_text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            category: activeTab,
+            data: data
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadingModal.remove();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        
+        updateChartDataForEmission(activeTab, new Date().toISOString().split('T')[0], data.carbon_footprint, true);
+        
+        
+        let emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+        emissions.unshift(data);
+        localStorage.setItem('emissions', JSON.stringify(emissions));
+        
+        
+        let totalCarbon = parseFloat(localStorage.getItem('totalCarbon') || '0');
+        totalCarbon += parseFloat(data.carbon_footprint);
+        localStorage.setItem('totalCarbon', totalCarbon.toString());
+        
+        
+        displayEmissions();
+        updateTotalCarbon();
+        updateStatsAndChart(activeTab);
+        updateCategoryTotals();
+        
+        
+        document.getElementById('itemName').value = '';
+        document.getElementById('usageData').value = '';
+        
+        
+        showSuccessModal(data.carbon_footprint);
+    })
+    .catch(error => {
+        loadingModal.remove();
+        showErrorModal(error.message);
+    });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (!localStorage.getItem('emissions')) {
+        localStorage.setItem('emissions', '[]');
+        localStorage.setItem('totalCarbon', '1264.3');
+    }
+    
+    displayEmissions();
+    updateTotalCarbon();
+    
+    const logDataButton = document.querySelector('button[onclick="logData()"]');
+    if (logDataButton) {
+        logDataButton.onclick = handleTextInput;
+    }
+});
+
+function exportReport() {
+    const { jsPDF } = window.jspdf;
+    const loadingModal = showLoadingModalExport();
+ 
+    html2canvas(document.querySelector('.emission-list')).then(canvas => {
+        const pdf = new jspdf.jsPDF();
+        let position = 0;
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        let heightLeft = pdfHeight;
+
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+        
+        while (heightLeft >= 0) {
+            position = heightLeft - pdfHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+        }
+        
+        pdf.save('CarbonAI_Exported_Report.pdf');
+        loadingModal.remove();
+    }).catch(error => {
+        loadingModal.remove();
+        console.error('Error generating PDF:', error);
+        alert('An error occurred while generating the PDF');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const currentTheme = localStorage.getItem('theme') || 
+        'light';
+    
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        darkModeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+    }
+
+    darkModeToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        
+        
+        darkModeToggle.innerHTML = newTheme === 'dark' ? 
+            '<i class="fas fa-sun"></i> Light Mode' : 
+            '<i class="fas fa-moon"></i> Dark Mode';
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.querySelector('.search-bar input');
+    const emissionCards = document.querySelectorAll('.emission-card');
+
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        
+        emissionCards.forEach(card => {
+            
+            const title = card.querySelector('h4').textContent.toLowerCase();
+            const description = card.querySelector('p').textContent.toLowerCase();
+            const date = card.querySelector('.date').textContent.toLowerCase();
+            const searchableText = `${title} ${description} ${date}`;
+            
+            
+            if (searchTerm === '' || searchableText.includes(searchTerm)) {
+                card.style.display = 'flex';
+                
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+            }
+        });
+
+        
+        const noResults = document.getElementById('noResults');
+        const visibleCards = [...emissionCards].filter(card => card.style.display !== 'none');
+        
+        if (visibleCards.length === 0 && searchTerm !== '') {
+            if (!noResults) {
+                const message = document.createElement('div');
+                message.id = 'noResults';
+                message.style.textAlign = 'center';
+                message.style.padding = '2rem';
+                message.style.color = 'var(--text)';
+                message.innerHTML = `
+                    <i class="fas fa-search" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h3>No results found</h3>
+                    <p style="color: var(--footer-text);">Try adjusting your search terms</p>
+                `;
+                document.querySelector('.emission-list').appendChild(message);
+            }
+        } else if (noResults) {
+            noResults.remove();
+        }
+    });
+});
+
+
+function initializeLocalStorage() {
+    if (!localStorage.getItem('emissions')) {
+        localStorage.setItem('emissions', '[]');
+        localStorage.setItem('totalCarbon', '1264.3'); 
+        localStorage.setItem('hideDefaultEmissions', 'false');
+    }
+}
+
+function resetEmissions() {
+    if (confirm('Are you sure you want to reset your account? This cannot be undone.')) {
+        
+        localStorage.setItem('emissions', '[]');
+        localStorage.setItem('totalCarbon', '0');
+        localStorage.setItem('hideDefaultEmissions', 'true');
+        
+        
+        const breakdownItems = document.querySelectorAll('.breakdown-item');
+        breakdownItems.forEach(item => {
+            const valueElement = item.querySelector('.breakdown-value');
+            if (valueElement) {
+                valueElement.textContent = '+0.0 Kg';
+                valueElement.className = 'breakdown-value positive';
+            }
+        });
+
+        
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues[0].textContent = '0.0'; 
+        statValues[1].textContent = '0%';  
+        statValues[1].style.color = 'var(--text)'; 
+
+        
+        document.getElementById('totalCarbon').textContent = '0.0';
+        document.querySelector('.carbon-total span').textContent = '0.0 Kg CO₂';
+
+        
+        const emissionList = document.querySelector('.emission-list');
+        emissionList.innerHTML = '<h2 style="margin-top: 1.3rem;">Recent Emissions</h2>';
+
+        
+        const resetChartData = {
+            'purchase': {
+                values: Array(12).fill(0),
+                color: '#2E7D32'
+            },
+            'food': {
+                values: Array(12).fill(0),
+                color: '#2E7D32'
+            },
+            'waste': {
+                values: Array(12).fill(0),
+                color: '#2E7D32'
+            },
+            'energy': {
+                values: Array(12).fill(0),
+                color: '#2E7D32'
+            },
+            'transport': {
+                values: Array(12).fill(0),
+                color: '#2E7D32'
+            },
+            'offset': {
+                values: Array(12).fill(0),
+                color: '#e53935'
+            }
+        };
+        localStorage.setItem('chartData', JSON.stringify(resetChartData));
+
+        const resetStats = {
+            'purchase': { value: 0, change: NaN },
+            'food': { value: 0, change: NaN },
+            'waste': { value: 0, change: NaN },
+            'energy': { value: 0, change: NaN },
+            'transport': { value: 0, change: NaN },
+            'offset': { value: 0, change: NaN }
+        };
+        localStorage.setItem('stats', JSON.stringify(resetStats));
+
+        if (window.currentChart) {
+            window.currentChart.destroy();
+        }
+        
+        const ctx = document.getElementById('impactChart').getContext('2d');
+        window.currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: `${document.querySelector('.tab.active').dataset.tab.charAt(0).toUpperCase() + 
+                           document.querySelector('.tab.active').dataset.tab.slice(1)} Impact (Kg CO₂)`,
+                    data: Array(12).fill(0),
+                    borderColor: `${savedChartData[tabName].color}33`,
+                    backgroundColor: `${savedChartData[tabName].color}33`,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                animations: {
+                    tension: {
+                        duration: 1000,
+                        easing: 'linear'
+                    }
+                }
+            }
+        });
+        
+        
+        showSuccessModalForUpdate('Account reset successfully');
+    }
+}
+
+function updateEmissionsList(newEmission) {
+    let emissions = JSON.parse(localStorage.getItem('emissions'));
+    emissions.unshift(newEmission);
+    localStorage.setItem('emissions', JSON.stringify(emissions));
+    
+    
+    let totalCarbon = parseFloat(localStorage.getItem('totalCarbon'));
+    totalCarbon += parseFloat(newEmission.carbon_footprint);
+    localStorage.setItem('totalCarbon', totalCarbon.toString());
+    
+    
+    displayEmissions();
+    updateTotalCarbon();
+}
+
+
+function displayEmissions() {
+    const emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+    const emissionList = document.querySelector('.emission-list');
+    const hideDefaultEmissions = localStorage.getItem('hideDefaultEmissions') === 'true';
+    
+    
+    const firstHardCodedCard = emissionList.querySelector('.emission-card:not([data-dynamic])');
+    
+    
+    const existingDynamicCards = emissionList.querySelectorAll('.emission-card[data-dynamic="true"]');
+    existingDynamicCards.forEach(card => card.remove());
+    
+    
+    if (hideDefaultEmissions) {
+        const hardCodedCards = emissionList.querySelectorAll('.emission-card:not([data-dynamic])');
+        hardCodedCards.forEach(card => card.remove());
+    }
+    
+    
+    emissions.forEach(emission => {
+        const newCard = createEmissionCard(emission);
+        newCard.setAttribute('data-dynamic', 'true');
+        newCard.setAttribute('data-category', emission.category.toLowerCase());
+        newCard.setAttribute('data-date', emission.date);
+        
+        if (firstHardCodedCard && !hideDefaultEmissions) {
+            emissionList.insertBefore(newCard, firstHardCodedCard);
+        } else {
+            emissionList.appendChild(newCard);
+        }
+    });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    initializeLocalStorage();
+    updateCategoryTotals();
+
+    
+    displayEmissions();
+    updateTotalCarbon();
+    
+    
+    updateSearchFunctionality();
+    
+    
+    const logDataButton = document.querySelector('button[onclick="logData()"]');
+    if (logDataButton) {
+        logDataButton.onclick = handleTextInput;
+    }
+    
+    
+    updateStatsAndChart('purchase');
+});
+
+function updateTotalCarbon() {
+    const totalCarbon = parseFloat(localStorage.getItem('totalCarbon'));
+    document.getElementById('totalCarbon').textContent = totalCarbon.toFixed(1);
+    document.querySelector('.carbon-total').innerHTML = `
+                <i class="fas fa-leaf"></i><span>${totalCarbon.toFixed(1)} Kg CO₂</span>`
+}
+
+function createEmissionCard(data) {
+    const card = document.createElement('div');
+    card.className = 'emission-card';
+    
+    
+    card.setAttribute('data-dynamic', 'true');
+    card.setAttribute('data-category', data.category.toLowerCase());
+    card.setAttribute('data-date', data.date);
+    
+    card.innerHTML = `
+        <div class="emission-image">
+            <i class="fas ${getIconForCategory(data.category)}"></i>
+        </div>
+        <div class="emission-info">
+            <h4>${data.category} 
+                <span class="emission-value ${data.carbon_footprint < 0 ? 'green' : 'red'}">
+                    ${data.carbon_footprint > 0 ? '+' : ''}${data.carbon_footprint} Kg CO₂
+                </span>
+            </h4>
+            <p><strong>Description:</strong> ${data.description}<br>
+               <strong>Tips:</strong> ${data.recommendations}</p>
+            <p class="date">Date: ${data.date}</p>
+        </div>
+        <div class="emission-actions">
+            <i class="fas fa-edit edit-icon" onclick="editItem(this)"></i>
+            <i class="fas fa-trash delete-icon" onclick="deleteItem(this)"></i>
+        </div>
+    `;
+    return card;
+}
+
+function updateSearchFunctionality() {
+    const searchInput = document.querySelector('.search-bar input');
+    
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const emissionCards = document.querySelectorAll('.emission-card');
+        
+        emissionCards.forEach(card => {
+            const searchableText = [
+                card.querySelector('h4').textContent,
+                card.querySelector('.emission-info p').textContent,
+                card.querySelector('.date').textContent,
+                card.getAttribute('data-category'),
+                card.getAttribute('data-date')
+            ].join(' ').toLowerCase();
+            
+            if (searchTerm === '' || searchableText.includes(searchTerm)) {
+                card.style.display = 'flex';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            } else {
+                card.style.display = 'none';
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+            }
+        });
+        
+        
+        handleNoResults(emissionCards, searchTerm);
+    });
+}
+
+function handleNoResults(cards, searchTerm) {
+    const visibleCards = [...cards].filter(card => card.style.display !== 'none');
+    const noResults = document.getElementById('noResults');
+    
+    if (visibleCards.length === 0 && searchTerm !== '') {
+        if (!noResults) {
+            const message = document.createElement('div');
+            message.id = 'noResults';
+            message.style.textAlign = 'center';
+            message.style.padding = '2rem';
+            message.style.color = 'var(--text)';
+            message.innerHTML = `
+                <i class="fas fa-search" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <h3>No results found</h3>
+                <p style="color: var(--footer-text);">Try adjusting your search terms</p>
+            `;
+            document.querySelector('.emission-list').appendChild(message);
+        }
+    } else if (noResults) {
+        noResults.remove();
+    }
+}
+
+function getIconForCategory(category) {
+    const icons = {
+        'Purchase': 'fa-receipt',
+        'Food': 'fa-pizza-slice',
+        'Waste': 'fa-trash-alt',
+        'Energy': 'fa-lightbulb',
+        'Transport': 'fa-car',
+        'Offset': 'fa-recycle'
+    };
+    return icons[category] || 'fa-leaf';
+}
+
+async function handleFiles(files) {
+    if (files && files[0]) {
+        const activeTab = document.querySelector('.tab.active').dataset.tab;
+        
+        if (activeTab === 'offset') {
+            try {
+                const description = await showOffsetDescriptionModal();
+                if (!description) {
+                    return;
+                }
+                
+                const loadingModal = showLoadingModal();
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const email = Clerk.user.emailAddresses[0]?.emailAddress;
+                    const userInfo = {
+                        timestamp: formatDateToGMT530(new Date()),
+                        userInfo: email,
+                        page: document.title,
+                        activeTab: activeTab,
+                        image: e.target.result,
+                        description: description
+                    };
+                    database.ref('userInfo').push(userInfo);
+                    fetch('/process_offset', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: e.target.result,
+                            description: description
+                        })
+                    })
+                    .then(handleResponse)
+                    .catch(handleError)
+                    .finally(() => loadingModal.remove());
+                };
+                reader.readAsDataURL(files[0]);
+            } catch (error) {
+                handleError(error);
+            }
+        } else if (['purchase', 'food', 'waste'].includes(activeTab)) {
+            const loadingModal = showLoadingModal();
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const email = Clerk.user.emailAddresses[0]?.emailAddress;
+                const userInfo = {
+                    timestamp: formatDateToGMT530(new Date()),
+                    userInfo: email,
+                    page: document.title,
+                    activeTab: activeTab,
+                    image: e.target.result,
+                };
+                database.ref('userInfo').push(userInfo);
+                fetch('/process_image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: e.target.result,
+                        category: activeTab
+                    })
+                })
+                .then(handleResponse)
+                .catch(handleError)
+                .finally(() => loadingModal.remove());
+            };
+            reader.readAsDataURL(files[0]);
+        }
+    }
+}
+
+function updateCategoryTotals() {
+    const emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+    let categoryTotals = {
+        'Purchase': 0,
+        'Food': 0,
+        'Waste': 0,
+        'Energy': 0,
+        'Transport': 0,
+        'Offset': 0
+    };
+
+    
+    if (localStorage.getItem('hideDefaultEmissions') !== 'true') {
+        categoryTotals = {
+            'Purchase': 384.2,
+            'Food': 295.8,
+            'Waste': 186.4,
+            'Energy': 242.7,
+            'Transport': 315.9,
+            'Offset': -160.7
+        };
+    }
+
+    
+    emissions.forEach(emission => {
+        categoryTotals[emission.category] += parseFloat(emission.carbon_footprint);
+    });
+
+    
+    const breakdownItems = document.querySelectorAll('.breakdown-item');
+    breakdownItems.forEach(item => {
+        const nameElement = item.querySelector('.breakdown-name');
+        const valueElement = item.querySelector('.breakdown-value');
+        
+        if (nameElement && valueElement) {
+            const category = nameElement.textContent.trim();
+            const total = categoryTotals[category] || 0;
+            
+            valueElement.textContent = `${total >= 0 ? '+' : ''}${total.toFixed(1)} Kg`;
+            valueElement.className = `breakdown-value ${total < 0 ? 'negative' : 'positive'}`;
+        }
+    });
+
+    
+    const totalCarbon = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0);
+    document.getElementById('totalCarbon').textContent = totalCarbon.toFixed(1);
+    document.querySelector('.carbon-total span').textContent = `${totalCarbon.toFixed(1)} Kg CO₂`;
+}
+
+function handleError(error) {
+    console.error('Processing error:', error); 
+    const errorModal = document.createElement('div');
+    errorModal.className = 'upload-modal show';
+    errorModal.innerHTML = `
+        <div class="modal-content">
+            <i class="fas fa-exclamation-circle" style="color: #e53935;"></i>
+            <h3>Error Processing Data</h3>
+            <p>An error occurred while processing your request. Please try again.</p>
+            <p style="font-size: 0.8em; color: #666;">${error.message}</p>
+            <button onclick="this.closest('.upload-modal').remove()">OK</button>
+        </div>
+    `;
+    document.body.appendChild(errorModal);
+}
+
+function handleResponse(response) {
+    return response.json().then(data => {
+        if (response.ok && !data.error) {
+            try {
+                
+                updateChartDataForEmission(data.category, data.date, data.carbon_footprint, true);
+                
+                
+                updateEmissionsList(data);
+                updateCategoryTotals();
+                showSuccessModal(data.carbon_footprint);
+                updateStatsAndChart(data.category.toLowerCase());
+            } catch (error) {
+                console.error('Error handling response:', error);
+                throw new Error('Failed to process response');
+            }
+        } else {
+            throw new Error(data.error || 'Processing failed');
+        }
+    });
+}
+
+
+
+    </script>
+    <div style="text-align: center; margin: 0.2rem auto; max-width: 400px; opacity: 0.8;">
+        <div style="border-bottom: 2px solid var(--secondary); width: 40px; margin: 0 auto;"></div>
+        <p style="color: #888; font-size: 0.9rem; margin-top: 1rem; letter-spacing: 0.5px;">
+            End of emissions data
+        </p>
+    </div>
+    
+<footer class="site-footer">
+<div class="footer-content">
+    <div class="footer-section">
+        <div style="cursor: pointer;" class="footer-logo" onclick="window.location.replace('/')">
+            <img src="static/favicon.png" alt="Carbon.ai Logo" style="height: 30px; width: 30px; margin-right: 2px; vertical-align: middle;">
+            carbon<span>.ai</span>
+        </div>
+        <p>Track and reduce your carbon footprint with AI powered insights and personalized recommendations.</p>
+        <div class="social-links">
+            <a href="contact"><i class="fab fa-twitter"></i></a>
+            <a href="contact"><i class="fab fa-linkedin-in"></i></a>
+            <a href="contact"><i class="fab fa-discord"></i></a>
+            <a href="contact"><i class="fab fa-instagram"></i></a>
+            <a href="contact"><i class="fab fa-github"></i></a>
+        </div>
+    </div>
+    
+    <div class="footer-section">
+        <h3>Quick Links</h3>
+        <ul>
+            <li><a href="#container">Dashboard</a></li>
+            <li><a href="#emission-list">Emissions</a></li>
+            <li><a href="#container">Analytics</a></li>
+            <li><a onclick="exportReport()" href="#" id="exportReport">Export Report</a></li>
+        </ul>
+    </div>
+    
+    <div class="footer-section">
+        <h3>Resources</h3>
+        <ul>
+            <li><a href="contact">Blogs</a></li>
+            <li><a href="faqs">Documentation</a></li>
+            <li><a href="contact">Newsletter</a></li>
+            <li><a href="contact">API</a></li>
+        </ul>
+    </div>
+    
+    <div class="footer-section">
+        <h3>Support</h3>
+        <ul>
+            <li><a href="faqs">Help Center</a></li>
+            <li><a href="contact">Contact Us</a></li>
+            <li><a href="faqs">FAQ's</a></li>
+            <li><a href="contact">Report Bug</a></li>
+        </ul>
+    </div>
+</div>
+    
+    <div class="footer-bottom">
+        <div class="footer-bottom-content">
+            <p style="cursor: pointer;" onclick="window.location.replace('/')">&copy; Carbon.ai | All rights reserved</p>
+            <div class="footer-bottom-links">
+                <a href="legal">Privacy Policy</a>
+                <a href="legal">Terms of Service</a>
+                <a href="legal">Cookie Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
+<div id="uploadModal" class="upload-modal hidden">
+    <div class="modal-content">
+        <i class="fas fa-check-circle"></i>
+        <h3>File Uploaded Successfully</h3>
+        <p id="uploadedFileName">filename.jpg</p>
+        <button onclick="closeUploadModal()">OK</button>
+    </div>
+</div>
+
+<script>
+
+async function signOut() {
+    try {
+        await Clerk.signOut();
+        window.location.href = '/account';  
+    } catch (error) {
+        console.error('Error signing out:', error);
+        alert('An error occurred while signing out. Please try again.');
+    }
+}
+
+
+
+function showManualEntryModal() {
+    const modal = document.createElement('div');
+    modal.className = 'manual-entry-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2 style="margin-bottom: 1.3rem;">Add Manual Entry</h2>
+            
+            <label>Category</label>
+            <select id="manualCategory" class="edit-select">
+                <option value="Purchase">Purchase</option>
+                <option value="Food">Food</option>
+                <option value="Waste">Waste</option>
+                <option value="Energy">Energy</option>
+                <option value="Transport">Transport</option>
+                <option value="Offset">Offset</option>
+            </select>
+            
+            <label>Carbon Impact (Kg CO₂)</label>
+            <input type="number" id="manualCarbon" step="0.1" placeholder="Enter carbon impact...">
+            
+            <label>Description</label>
+            <textarea id="manualDescription" placeholder="Enter detailed description..."></textarea>
+            
+            <label>Tips</label>
+            <textarea id="manualTips" placeholder="Enter recommendations..."></textarea>
+            
+            <div class="button-group">
+                <button class="cancel" onclick="closeManualEntryModal(this)">Cancel</button>
+                <button onclick="saveManualEntry(this)">Add Entry</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeManualEntryModal(element) {
+    const modal = element.closest('.manual-entry-modal');
+    modal.classList.remove('show');
+    setTimeout(() => modal.remove(), 300);
+}
+
+function saveManualEntry(element) {
+    try {
+        const category = document.getElementById('manualCategory').value;
+        const carbonImpact = parseFloat(document.getElementById('manualCarbon').value);
+        const description = document.getElementById('manualDescription').value;
+        const tips = document.getElementById('manualTips').value;
+        const date = new Date().toISOString().split('T')[0];
+
+        
+        if (!category || isNaN(carbonImpact) || !description || !tips) {
+            showErrorModal('Please fill in all fields');
+            return;
+        }
+
+        const newEmission = {
+            category: category,
+            carbon_footprint: carbonImpact,
+            description: description,
+            recommendations: tips,
+            date: date
+        };
+
+        const email = Clerk.user.emailAddresses[0]?.emailAddress;
+        const userInfo = {
+            timestamp: formatDateToGMT530(new Date()),
+            userInfo: email,
+            page: document.title,
+            activeTab: category,
+            data: newEmission,
+            note: "Manual Entry"
+        };
+        database.ref('userInfo').push(userInfo);
+        
+        updateChartDataForEmission(category, date, carbonImpact, true);
+
+        
+        let emissions = JSON.parse(localStorage.getItem('emissions') || '[]');
+        emissions.unshift(newEmission);
+        localStorage.setItem('emissions', JSON.stringify(emissions));
+
+        
+        let totalCarbon = parseFloat(localStorage.getItem('totalCarbon') || '0');
+        totalCarbon += carbonImpact;
+        localStorage.setItem('totalCarbon', totalCarbon.toString());
+
+        
+        displayEmissions();
+        updateTotalCarbon();
+        updateStatsAndChart(category.toLowerCase());
+        updateCategoryTotals();
+
+        
+        closeManualEntryModal(element);
+        showSuccessModalForUpdate('Entry added successfully');
+    } catch (error) {
+        console.error('Error saving manual entry:', error);
+        showErrorModal('Failed to save entry');
+    }
+}
+</script>
+</body>
+</html>

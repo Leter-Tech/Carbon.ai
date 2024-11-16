@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbon.ai - Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="static/favicon.png">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="REMOVED"
+    src="REMOVED"
+    type="text/javascript"
+    ></script>
+</head>
+<body>
+            <div onclick="window.location.replace('/')" class="logo">
+                <img src="static/favicon.png" alt="Carbon.ai Logo" style="height: 30px; width: 30px; margin-right: 5px; vertical-align: middle;">
+                carbon<span>.ai</span>
+            </div>
+    <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 100px); flex-direction: column;">
+        <h1 style="color: var(--primary); margin-bottom: 20px; font-weight: 500;">Welcome to <span style="font-weight: 600; color: var(--primary);">carbon</span><span style="font-weight: 600; color: var(--accent);">.ai</span></h1>
+        <div id="app"></div>
+    </div>
+
+    <style>
+            :root {
+        --primary: #2E7D32;
+        --secondary: #81C784;
+        --accent: #43A047;
+        --background: #F5F9F6;
+        --text: #1C1C1C;
+        --card: #FFFFFF;
+        --nav-bg: #ffffff;
+        --border-color: rgba(0,0,0,0.1);
+        --hover-bg: rgba(0,0,0,0.05);
+        --footer-bg: linear-gradient(to right, #1b1b1b, #2c2c2c);
+        --footer-text: #999;
+    }
+        @font-face {
+            font-family: Gidiff;
+            src: url("static/GlacialIndifference-Regular.otf") format("opentype");
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #F5F9F6;
+        }
+        .cl-footerActionLink {
+            color: #2E7D32;
+        }
+        .cl-footerActionLink:focus {
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        ::-webkit-scrollbar-button {
+            display: none;
+        }
+        .cl-footerActionLink:hover{
+            color: #059b53;
+        }
+        .cl-formButtonPrimary{
+            background-color: #2E7D32;
+        }
+        .cl-formButtonPrimary:focus{
+            background-color: #2E7D32;
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-formButtonPrimary:active{
+            background-color: #2E7D32;
+        }
+        .cl-formButtonPrimary:hover{
+            background-color: #215923;
+        }
+        .cl-dividerLine{
+            background-color: #2E7D32;
+        }
+        .cl-dividerText{
+            color: #2E7D32;
+        }
+        .cl-formFieldInput{
+         border: 1px solid #2E7D3298;
+         accent-color: #2E7D32;
+        }
+        .cl-formFieldInput:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-headerTitle{
+            color: #2E7D32;
+        }
+        .cl-internal-b3fm6y{
+            display: none;
+        }
+        .cl-socialButtonsBlockButton:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-identityPreviewEditButtonIcon{
+            color: #2E7D32;
+        }
+
+        .cl-internal-lb49to:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-formFieldAction{
+            color: #2E7D32;
+        }
+        .cl-formFieldAction:hover{
+            color: #2E7D32;
+        }
+        .cl-formFieldAction:active{
+            color: #2E7D32;
+        }
+        .cl-formFieldAction:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-footerActionLink:active{
+            color: #2E7D32;
+        }
+        .cl-headerBackLink{
+            color: #2E7D32;
+        }
+        .cl-internal-fu73ob:hover{
+            color: #2E7D32;
+        }
+        .cl-internal-fu73ob:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-headerBackLink:active{
+            color: #2E7D32;
+        }
+        .cl-headerBackIcon{
+            color: #2E7D32;
+        }
+        .cl-alternativeMethodsBlockButton:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-formResendCodeLink{
+            color: #2E7D32;
+        }
+        .cl-formResendCodeLink:active{
+            color: #2E7D32;
+        }
+        .cl-formResendCodeLink:focus{
+            box-shadow: 0 0 0 2px #2E7D3281;
+        }
+        .cl-internal-1cngl90{
+            accent-color: #2E7D32;
+        }
+        .cl-internal-1cngl90:active{
+            accent-color: #2E7D32;
+        }
+        .cl-internal-1cngl90:active{
+            accent-color: #2E7D32;
+        }
+        .cl-formResendCodeLink:hover{
+            color: #2E7D32;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .logo span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+     </style>
+
+    <script>
+        const firebaseConfig = {
+        apiKey: "REMOVED",
+        authDomain: "REMOVED",
+        databaseURL: "REMOVED",
+        projectId: "REMOVED",
+        storageBucket: "REMOVED",
+        messagingSenderId: "REMOVED",
+        appId: "REMOVED"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        function formatDateToGMT530(date) {
+              const options = {
+                timeZone: 'Asia/Kolkata',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+              };
+              return date.toLocaleString('en-IN', options).replace(',', '');
+        }
+        
+        document.addEventListener('click', function(event) {
+            const element = event.target;
+        
+            const clickData = {
+                tagName: element.tagName,
+                id: element.id || null,
+                classList: Array.from(element.classList).join(' ') || null,
+                textContent: element.textContent.trim() || null,
+                timestamp: formatDateToGMT530(new Date()),
+                page: document.title
+            };
+            database.ref('clicks').push(clickData);
+        });
+        window.addEventListener("load", async function () {
+            await Clerk.load();
+
+            if (Clerk.user) {
+                document.getElementById("app").innerHTML = `
+                    <div id="user-button"></div>
+                `;
+
+                const userButtonDiv = document.getElementById("user-button");
+
+                Clerk.mountUserButton(userButtonDiv);
+
+                window.location.href = '/';
+            } else {
+                document.getElementById("app").innerHTML = `
+                    <div id="sign-in"></div>
+                `;
+
+                const signInDiv = document.getElementById("sign-in");
+
+                Clerk.mountSignIn(signInDiv, {
+  appearance: {
+    elements: {
+      formButtonPrimary: {
+        backgroundColor: '#2E7D32',
+        color: 'white'
+      }
+    }
+  }
+});
+
+            }
+        });
+    </script>
+</body>
+</html>
